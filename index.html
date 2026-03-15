@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barista Dashboard - ร้านกาแฟนินจาเต่า</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&family=Sarabun:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080D08;
+    --panel: #0D160D;
+    --card: #112011;
+    --border: #1E3A1E;
+    --accent: #39D353;
+    --accent-dark: #22A832;
+    --green: #27AE60;
+    --red: #E74C3C;
+    --blue: #3498DB;
+    --purple: #9B59B6;
+    --yellow: #C8F53A;
+    --text: #D8F5D0;
+    --text-dim: #5A8A5A;
+    --glow: rgba(57,211,83,0.12);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Kanit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .header-logo { font-size: 1.5rem; filter: drop-shadow(0 0 8px rgba(57,211,83,0.5)); }
+  .header-title { font-size: 1rem; font-weight: 700; color: var(--accent); }
+  .header-sub { font-size: 0.7rem; color: var(--text-dim); }
+  .live-badge {
+    background: var(--green);
+    color: white;
+    font-size: 0.7rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .live-dot {
+    width: 6px; height: 6px;
+    background: white;
+    border-radius: 50%;
+    animation: blink 1.2s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* TABS */
+  .nav-tabs {
+    background: var(--panel);
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    flex: 1;
+    min-width: 80px;
+    padding: 12px 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-family: 'Kanit', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* CONTENT */
+  .content { padding: 16px; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+  }
+  .stat-label { font-size: 0.7rem; color: var(--text-dim); margin-bottom: 4px; }
+  .stat-value { font-size: 1.5rem; font-weight: 700; }
+  .stat-value.green { color: var(--green); }
+  .stat-value.orange { color: var(--accent); }
+  .stat-value.blue { color: var(--blue); }
+  .stat-value.purple { color: var(--purple); }
+
+  /* ORDER CARD */
+  .section-head {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+  }
+
+  .order-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-left: 4px solid var(--accent);
+    transition: transform 0.2s;
+  }
+  .order-card.done { border-left-color: var(--green); opacity: 0.75; }
+  .order-card.urgent { border-left-color: var(--red); }
+
+  .order-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  .order-id { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-shadow: 0 0 8px rgba(57,211,83,0.3); }
+  .order-time { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; }
+  .order-name { font-weight: 600; margin-top: 2px; }
+
+  .status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .status-waiting { background: rgba(57,211,83,0.15); color: var(--accent); }
+  .status-making { background: rgba(52,152,219,0.2); color: var(--blue); }
+  .status-done { background: rgba(39,174,96,0.2); color: var(--green); }
+  .status-delivered { background: rgba(155,89,182,0.2); color: var(--purple); }
+
+  .order-items { margin-bottom: 12px; }
+  .order-item-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+    background: rgba(57,211,83,0.04);
+    border-radius: 8px;
+    margin-bottom: 6px;
+  }
+  .item-qty {
+    background: var(--accent);
+    color: var(--bg);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .item-name { font-size: 0.9rem; font-weight: 600; line-height: 1.2; }
+  .item-detail { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; }
+
+  .order-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .meta-chip {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    background: rgba(255,255,255,0.04);
+    color: var(--text-dim);
+  }
+  .meta-chip.highlight { background: rgba(57,211,83,0.1); color: var(--accent); }
+
+  .action-row { display: flex; gap: 8px; }
+  .action-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Kanit', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-start { background: var(--blue); color: white; }
+  .btn-done { background: var(--green); color: white; }
+  .btn-deliver { background: var(--purple); color: white; }
+  .btn-cancel { background: rgba(231,76,60,0.2); color: var(--red); border: 1px solid var(--red); }
+  .action-btn:hover { opacity: 0.85; }
+
+  /* REPORTS */
+  .report-period-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .period-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: transparent;
+    color: var(--text-dim);
+    font-family: 'Kanit', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .period-btn.active {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+
+  .report-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .report-title { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 14px; font-weight: 600; }
+
+  .big-revenue {
+    text-align: center;
+    padding: 20px;
+  }
+  .big-revenue-label { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 6px; }
+  .big-revenue-value { font-size: 2.5rem; font-weight: 800; color: var(--accent); text-shadow: 0 0 16px rgba(57,211,83,0.3); }
+
+  .report-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .report-row:last-child { border-bottom: none; }
+  .report-item-name { font-size: 0.85rem; }
+  .report-item-val { font-size: 0.9rem; font-weight: 600; color: var(--accent); }
+
+  .bar-chart { margin-top: 10px; }
+  .bar-row { margin-bottom: 10px; }
+  .bar-label { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 4px; display: flex; justify-content: space-between; }
+  .bar-track { background: rgba(255,255,255,0.05); border-radius: 4px; height: 8px; }
+  .bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent-dark), var(--accent)); transition: width 0.8s ease; }
+
+  /* SETTINGS */
+  .settings-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .settings-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 14px; color: var(--accent); }
+  .settings-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Kanit', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    margin-bottom: 8px;
+    transition: border-color 0.2s;
+  }
+  .settings-input:focus { border-color: var(--accent); }
+  .save-btn {
+    padding: 10px 20px;
+    background: var(--accent-dark);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Kanit', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .save-btn:hover { background: var(--accent); color: var(--bg); }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+  }
+  .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+
+  .refresh-btn {
+    float: right;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-family: 'Kanit', sans-serif;
+    font-size: 0.75rem;
+    cursor: pointer;
+    margin-bottom: 12px;
+  }
+  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">🐢</div>
+    <div>
+      <div class="header-title">Barista Dashboard</div>
+      <div class="header-sub">ร้านกาแฟนินจาเต่า</div>
+    </div>
+  </div>
+  <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+</div>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="switchNav('orders')">📋 ออเดอร์</button>
+  <button class="nav-tab" onclick="switchNav('today')">📊 วันนี้</button>
+  <button class="nav-tab" onclick="switchNav('report')">📈 รายงาน</button>
+  <button class="nav-tab" onclick="switchNav('settings')">⚙️ ตั้งค่า</button>
+</div>
+
+<div class="content">
+
+  <!-- ===== ORDERS TAB ===== -->
+  <div id="tab-orders" class="tab-content active">
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">รอชง</div>
+        <div class="stat-value orange" id="statWaiting">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">กำลังชง</div>
+        <div class="stat-value blue" id="statMaking">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">เสร็จวันนี้</div>
+        <div class="stat-value green" id="statDone">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">ยอดวันนี้</div>
+        <div class="stat-value purple" id="statRevenue">0 ฿</div>
+      </div>
+    </div>
+
+    <button class="refresh-btn" onclick="loadOrders()">🔄 รีเฟรช</button>
+    <div style="clear:both;"></div>
+
+    <div class="section-head">ออเดอร์ที่รอดำเนินการ</div>
+    <div id="pendingOrdersList"></div>
+
+    <div class="section-head" style="margin-top:20px;">ออเดอร์เสร็จแล้ว</div>
+    <div id="doneOrdersList"></div>
+  </div>
+
+  <!-- ===== TODAY TAB ===== -->
+  <div id="tab-today" class="tab-content">
+    <div class="report-card">
+      <div class="big-revenue">
+        <div class="big-revenue-label">รายได้วันนี้</div>
+        <div class="big-revenue-value" id="todayRevenue">0 ฿</div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">ออเดอร์ทั้งหมด</div>
+        <div class="stat-value orange" id="todayOrders">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">รายการทั้งหมด</div>
+        <div class="stat-value blue" id="todayItems">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">รับเอง</div>
+        <div class="stat-value green" id="todayPickup">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">ส่งวิน</div>
+        <div class="stat-value purple" id="todayDelivery">0</div>
+      </div>
+    </div>
+
+    <div class="report-card">
+      <div class="report-title">🔥 เมนูยอดนิยมวันนี้</div>
+      <div id="todayTopItems"></div>
+    </div>
+
+    <div class="report-card">
+      <div class="report-title">💳 วิธีชำระเงิน</div>
+      <div class="bar-row">
+        <div class="bar-label"><span>เงินสด</span><span id="cashPct">0%</span></div>
+        <div class="bar-track"><div class="bar-fill" id="cashBar" style="width:0%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label"><span>ออนไลน์</span><span id="onlinePct">0%</span></div>
+        <div class="bar-track"><div class="bar-fill" id="onlineBar" style="width:0%; background: linear-gradient(90deg, #2980b9, #3498db)"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REPORT TAB ===== -->
+  <div id="tab-report" class="tab-content">
+    <div class="report-period-tabs">
+      <button class="period-btn active" onclick="switchPeriod('day', this)">วัน</button>
+      <button class="period-btn" onclick="switchPeriod('month', this)">เดือน</button>
+      <button class="period-btn" onclick="switchPeriod('year', this)">ปี</button>
+    </div>
+
+    <div class="report-card">
+      <div class="big-revenue">
+        <div class="big-revenue-label" id="reportLabel">ยอดขายวันนี้</div>
+        <div class="big-revenue-value" id="reportRevenue">0 ฿</div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">จำนวนออเดอร์</div>
+        <div class="stat-value orange" id="reportOrders">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">รายการ</div>
+        <div class="stat-value blue" id="reportItems">0</div>
+      </div>
+    </div>
+
+    <div class="report-card">
+      <div class="report-title">🏆 เมนูขายดี</div>
+      <div id="reportTopMenu"></div>
+    </div>
+
+    <div class="report-card">
+      <div class="report-title">📅 แนวโน้มยอดขาย</div>
+      <div class="bar-chart" id="trendChart"></div>
+    </div>
+  </div>
+
+  <!-- ===== SETTINGS TAB ===== -->
+  <div id="tab-settings" class="tab-content">
+    <div class="settings-card">
+      <div class="settings-title">🔗 Google Sheets</div>
+      <input class="settings-input" id="sheetUrlInput" placeholder="Google Apps Script URL" type="text">
+      <button class="save-btn" onclick="saveSettings()">บันทึก</button>
+    </div>
+    <div class="settings-card">
+      <div class="settings-title">ℹ️ วิธีเชื่อมต่อ Google Sheets</div>
+      <p style="font-size:0.8rem; color:var(--text-dim); line-height:1.8;">
+        1. เปิด Google Sheets → Extensions → Apps Script<br>
+        2. วางโค้ด Apps Script ที่ได้รับ<br>
+        3. Deploy → Web App → Anyone<br>
+        4. Copy URL มาวางในช่องด้านบน<br>
+        5. กด บันทึก
+      </p>
+    </div>
+    <div class="settings-card">
+      <div class="settings-title">🧪 ทดสอบระบบ (Demo Orders)</div>
+      <button class="save-btn" onclick="addDemoOrders()" style="width:100%; padding:12px;">
+        + สร้างออเดอร์ตัวอย่าง (Demo)
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============ CONFIG ============
+let SHEET_URL = "https://script.google.com/macros/s/AKfycbxcyqSkFpYD52Hj_hzIRM3MWv0d9Hjlgt5_Q7zvvW0r5V82h_EoSwsNbMjNqsndZQIO/exec";
+document.getElementById("sheetUrlInput").value = SHEET_URL;
+
+function saveSettings() {
+  SHEET_URL = document.getElementById("sheetUrlInput").value.trim();
+  localStorage.setItem("ninja_sheet_url", SHEET_URL);
+  alert("บันทึกแล้ว! ลอง Refresh ดูออเดอร์");
+}
+
+// ============ STATE ============
+let orders = JSON.parse(localStorage.getItem("ninja_orders") || "[]");
+
+function saveOrders() {
+  localStorage.setItem("ninja_orders", JSON.stringify(orders));
+}
+
+// ============ NAV ============
+function switchNav(tab) {
+  document.querySelectorAll(".nav-tab").forEach((b, i) => {
+    b.classList.toggle("active", ["orders","today","report","settings"][i] === tab);
+  });
+  document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+  document.getElementById("tab-" + tab).classList.add("active");
+  if (tab === "today") renderTodayTab();
+  if (tab === "report") renderReport("day");
+}
+
+// ============ LOAD ORDERS ============
+async function loadOrders() {
+  if (SHEET_URL) {
+    try {
+      const res = await fetch(SHEET_URL + "?action=getOrders");
+      const data = await res.json();
+      if (data.orders) {
+        orders = data.orders;
+        saveOrders();
+      }
+    } catch(e) {
+      console.log("Using local orders:", e);
+    }
+  }
+  renderOrders();
+  updateStats();
+}
+
+function renderOrders() {
+  const pending = orders.filter(o => o.status !== "จัดส่งแล้ว" && o.status !== "ยกเลิก");
+  const done = orders.filter(o => o.status === "จัดส่งแล้ว" || o.status === "เสร็จสิ้น");
+
+  document.getElementById("pendingOrdersList").innerHTML =
+    pending.length === 0
+      ? `<div class="empty-state"><div class="empty-icon">🐢</div>ไม่มีออเดอร์ที่รอดำเนินการ</div>`
+      : pending.map(o => renderOrderCard(o)).join("");
+
+  document.getElementById("doneOrdersList").innerHTML =
+    done.length === 0
+      ? `<div class="empty-state" style="padding:20px;"><div style="color:var(--text-dim); font-size:0.8rem;">ยังไม่มีออเดอร์เสร็จสิ้น</div></div>`
+      : done.slice(0,10).map(o => renderOrderCard(o)).join("");
+}
+
+function renderOrderCard(o) {
+  const isUrgent = o.status === "รอชง" && isOlderThan(o.time, 10);
+  let statusBadge = "";
+  if (o.status === "รอชง") statusBadge = `<span class="status-badge status-waiting">รอชง</span>`;
+  else if (o.status === "กำลังชง") statusBadge = `<span class="status-badge status-making">กำลังชง</span>`;
+  else if (o.status === "เสร็จสิ้น") statusBadge = `<span class="status-badge status-done">เสร็จสิ้น</span>`;
+  else if (o.status === "จัดส่งแล้ว") statusBadge = `<span class="status-badge status-delivered">จัดส่งแล้ว</span>`;
+
+  const itemsHtml = o.itemList.map(item => `
+    <div class="order-item-row">
+      <div class="item-qty">${item.qty}</div>
+      <div>
+        <div class="item-name">${item.name}</div>
+        <div class="item-detail">🍬 หวาน ${item.sweet}${item.note ? ' • 📝 ' + item.note : ''}</div>
+      </div>
+    </div>
+  `).join("");
+
+  const actionsHtml = getActions(o);
+  const isDone = o.status === "จัดส่งแล้ว" || o.status === "เสร็จสิ้น";
+
+  return `
+    <div class="order-card ${isDone ? 'done' : ''} ${isUrgent ? 'urgent' : ''}" id="order-${o.orderId}">
+      <div class="order-top">
+        <div>
+          <div class="order-id">${o.orderId}</div>
+          <div class="order-name">👤 ${o.customerName}</div>
+          <div class="order-time">🕐 ${o.date} ${o.time}</div>
+        </div>
+        ${statusBadge}
+      </div>
+      <div class="order-items">${itemsHtml}</div>
+      <div class="order-meta">
+        <span class="meta-chip">${o.deliveryMethod === "รับเอง" ? "🏪 รับเอง" : "🛵 ส่งวิน"}</span>
+        <span class="meta-chip">${o.paymentMethod === "เงินสด" ? "💵 เงินสด" : "📱 ออนไลน์"}</span>
+        <span class="meta-chip highlight">฿ ${o.total}</span>
+        ${o.deliveryAddress && o.deliveryAddress !== "-" ? `<span class="meta-chip">📍 ${o.deliveryAddress}</span>` : ""}
+      </div>
+      <div class="action-row">${actionsHtml}</div>
+    </div>`;
+}
+
+function getActions(o) {
+  if (o.status === "รอชง") return `
+    <button class="action-btn btn-start" onclick="updateStatus('${o.orderId}', 'กำลังชง')">🔵 เริ่มชง</button>
+    <button class="action-btn btn-cancel" onclick="updateStatus('${o.orderId}', 'ยกเลิก')">✕</button>
+  `;
+  if (o.status === "กำลังชง") return `
+    <button class="action-btn btn-done" onclick="updateStatus('${o.orderId}', 'เสร็จสิ้น')">✅ ชงเสร็จ</button>
+  `;
+  if (o.status === "เสร็จสิ้น") return `
+    <button class="action-btn btn-deliver" onclick="updateStatus('${o.orderId}', 'จัดส่งแล้ว')">📦 จัดส่งแล้ว</button>
+  `;
+  return "";
+}
+
+function isOlderThan(timeStr, minutes) {
+  try {
+    const now = new Date();
+    const [h, m] = timeStr.split(":").map(Number);
+    const orderDate = new Date();
+    orderDate.setHours(h, m, 0, 0);
+    return (now - orderDate) / 60000 > minutes;
+  } catch { return false; }
+}
+
+function updateStatus(orderId, newStatus) {
+  const idx = orders.findIndex(o => o.orderId === orderId);
+  if (idx !== -1) {
+    orders[idx].status = newStatus;
+    saveOrders();
+    if (SHEET_URL) {
+      fetch(SHEET_URL, {
+        method: "POST", mode: "no-cors",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ action: "updateStatus", orderId, status: newStatus })
+      }).catch(() => {});
+    }
+    renderOrders();
+    updateStats();
+  }
+}
+
+function updateStats() {
+  const today = todayStr();
+  const todayOrders = orders.filter(o => o.date === today);
+  const waiting = todayOrders.filter(o => o.status === "รอชง").length;
+  const making = todayOrders.filter(o => o.status === "กำลังชง").length;
+  const done = todayOrders.filter(o => o.status === "เสร็จสิ้น" || o.status === "จัดส่งแล้ว").length;
+  const revenue = todayOrders
+    .filter(o => o.status !== "ยกเลิก")
+    .reduce((s, o) => s + (parseFloat(o.total) || 0), 0);
+
+  document.getElementById("statWaiting").textContent = waiting;
+  document.getElementById("statMaking").textContent = making;
+  document.getElementById("statDone").textContent = done;
+  document.getElementById("statRevenue").textContent = revenue.toLocaleString() + " ฿";
+}
+
+function todayStr() {
+  return new Date().toLocaleDateString("th-TH");
+}
+
+// ============ TODAY TAB ============
+function renderTodayTab() {
+  const today = todayStr();
+  const todayOrders = orders.filter(o => o.date === today && o.status !== "ยกเลิก");
+  const revenue = todayOrders.reduce((s, o) => s + (parseFloat(o.total) || 0), 0);
+  const itemCount = todayOrders.reduce((s, o) => s + o.itemList.reduce((ss, i) => ss + i.qty, 0), 0);
+  const pickupCount = todayOrders.filter(o => o.deliveryMethod === "รับเอง").length;
+  const deliveryCount = todayOrders.filter(o => o.deliveryMethod === "ส่งวิน").length;
+  const cashCount = todayOrders.filter(o => o.paymentMethod === "เงินสด").length;
+  const onlineCount = todayOrders.filter(o => o.paymentMethod === "ออนไลน์").length;
+
+  document.getElementById("todayRevenue").textContent = revenue.toLocaleString() + " ฿";
+  document.getElementById("todayOrders").textContent = todayOrders.length;
+  document.getElementById("todayItems").textContent = itemCount;
+  document.getElementById("todayPickup").textContent = pickupCount;
+  document.getElementById("todayDelivery").textContent = deliveryCount;
+
+  const total = cashCount + onlineCount || 1;
+  const cashP = Math.round(cashCount / total * 100);
+  const onlineP = 100 - cashP;
+  document.getElementById("cashPct").textContent = cashP + "%";
+  document.getElementById("onlinePct").textContent = onlineP + "%";
+  setTimeout(() => {
+    document.getElementById("cashBar").style.width = cashP + "%";
+    document.getElementById("onlineBar").style.width = onlineP + "%";
+  }, 100);
+
+  const itemFreq = {};
+  todayOrders.forEach(o => o.itemList.forEach(i => {
+    itemFreq[i.name] = (itemFreq[i.name] || 0) + i.qty;
+  }));
+  const sorted = Object.entries(itemFreq).sort((a,b) => b[1]-a[1]).slice(0,5);
+  document.getElementById("todayTopItems").innerHTML = sorted.map(([name, count], idx) => `
+    <div class="report-row">
+      <div class="report-item-name">${["🥇","🥈","🥉","4️⃣","5️⃣"][idx]} ${name}</div>
+      <div class="report-item-val">${count} แก้ว</div>
+    </div>
+  `).join("") || `<div style="color:var(--text-dim); font-size:0.8rem; text-align:center; padding:12px;">ยังไม่มีข้อมูล</div>`;
+}
+
+// ============ REPORT TAB ============
+let currentPeriod = "day";
+function switchPeriod(period, btn) {
+  currentPeriod = period;
+  document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderReport(period);
+}
+
+function renderReport(period) {
+  const now = new Date();
+  let filtered, label, trend;
+
+  if (period === "day") {
+    const today = todayStr();
+    filtered = orders.filter(o => o.date === today && o.status !== "ยกเลิก");
+    label = "ยอดขายวันนี้ (" + today + ")";
+    trend = getLast7Days();
+  } else if (period === "month") {
+    const monthYear = now.toLocaleDateString("th-TH", { month: "long", year: "numeric" });
+    const month = now.getMonth();
+    const year = now.getFullYear();
+    filtered = orders.filter(o => {
+      if (o.status === "ยกเลิก") return false;
+      const parts = o.date.split("/");
+      return parseInt(parts[1]) - 1 === month && parseInt(parts[2]) === year + 543;
+    });
+    label = "ยอดขายเดือนนี้ (" + monthYear + ")";
+    trend = getLast6Months();
+  } else {
+    const yearBE = now.getFullYear() + 543;
+    filtered = orders.filter(o => {
+      if (o.status === "ยกเลิก") return false;
+      const parts = o.date.split("/");
+      return parseInt(parts[2]) === yearBE;
+    });
+    label = "ยอดขายปีนี้ (พ.ศ. " + yearBE + ")";
+    trend = getLast3Years();
+  }
+
+  const revenue = filtered.reduce((s, o) => s + (parseFloat(o.total) || 0), 0);
+  const itemCount = filtered.reduce((s, o) => s + o.itemList.reduce((ss, i) => ss + i.qty, 0), 0);
+
+  document.getElementById("reportLabel").textContent = label;
+  document.getElementById("reportRevenue").textContent = revenue.toLocaleString() + " ฿";
+  document.getElementById("reportOrders").textContent = filtered.length;
+  document.getElementById("reportItems").textContent = itemCount;
+
+  const itemFreq = {};
+  filtered.forEach(o => o.itemList.forEach(i => {
+    itemFreq[i.name] = (itemFreq[i.name] || 0) + i.qty;
+  }));
+  const sorted = Object.entries(itemFreq).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  document.getElementById("reportTopMenu").innerHTML = sorted.map(([name, count], idx) => `
+    <div class="report-row">
+      <div class="report-item-name">${["🥇","🥈","🥉","4️⃣","5️⃣"][idx]} ${name}</div>
+      <div class="report-item-val">${count} แก้ว</div>
+    </div>
+  `).join("") || `<div style="color:var(--text-dim); font-size:0.8rem; text-align:center; padding:12px;">ยังไม่มีข้อมูล</div>`;
+
+  const maxTrend = Math.max(...trend.map(t => t.val), 1);
+  document.getElementById("trendChart").innerHTML = trend.map(t => `
+    <div class="bar-row">
+      <div class="bar-label"><span>${t.label}</span><span>${t.val.toLocaleString()} ฿</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(t.val/maxTrend*100)}%"></div></div>
+    </div>
+  `).join("");
+}
+
+function getLast7Days() {
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const label = d.toLocaleDateString("th-TH", { weekday: "short", day: "numeric" });
+    const key = d.toLocaleDateString("th-TH");
+    const val = orders.filter(o => o.date === key && o.status !== "ยกเลิก")
+      .reduce((s, o) => s + (parseFloat(o.total) || 0), 0);
+    days.push({ label, val });
+  }
+  return days;
+}
+
+function getLast6Months() {
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    const label = d.toLocaleDateString("th-TH", { month: "short" });
+    const month = d.getMonth();
+    const year = d.getFullYear();
+    const val = orders.filter(o => {
+      if (o.status === "ยกเลิก") return false;
+      const parts = o.date.split("/");
+      return parseInt(parts[1]) - 1 === month && parseInt(parts[2]) === year + 543;
+    }).reduce((s, o) => s + (parseFloat(o.total) || 0), 0);
+    months.push({ label, val });
+  }
+  return months;
+}
+
+function getLast3Years() {
+  const years = [];
+  for (let i = 2; i >= 0; i--) {
+    const year = new Date().getFullYear() - i;
+    const yearBE = year + 543;
+    const val = orders.filter(o => {
+      if (o.status === "ยกเลิก") return false;
+      const parts = o.date.split("/");
+      return parseInt(parts[2]) === yearBE;
+    }).reduce((s, o) => s + (parseFloat(o.total) || 0), 0);
+    years.push({ label: "พ.ศ. " + yearBE, val });
+  }
+  return years;
+}
+
+// ============ DEMO DATA ============
+function addDemoOrders() {
+  const menuNames = [
+    "อเมริกาโน่ร้อน","ไอซ์ลาเต้","มัทฉะสมูทตี้","ชาไทยเย็น","สตรอเบอร์รี่โซดา",
+    "คาปูชิโน่เย็น","โกโก้ร้อน","มิกซ์เบอร์รี่จูส","กาแฟโปรตีนเชค","ยูซุ อเมริกาโน่เย็น"
+  ];
+  const sweets = ["100%", "75%", "50%", "0%"];
+  const deliveries = ["รับเอง", "ส่งวิน"];
+  const payments = ["เงินสด", "ออนไลน์"];
+  const names = ["คุณแอม", "พี่โจ", "น้องมิ้ว", "คุณบีม", "พี่นัท"];
+  const today = new Date().toLocaleDateString("th-TH");
+  const now = new Date();
+
+  for (let i = 0; i < 5; i++) {
+    const itemCount = Math.ceil(Math.random() * 2);
+    const items = [];
+    for (let j = 0; j < itemCount; j++) {
+      items.push({
+        name: menuNames[Math.floor(Math.random() * menuNames.length)],
+        qty: Math.ceil(Math.random() * 2),
+        sweet: sweets[Math.floor(Math.random() * sweets.length)],
+        note: Math.random() > 0.6 ? "ไม่ใส่น้ำแข็ง" : ""
+      });
+    }
+    const total = items.reduce((s, it) => s + it.qty * 35, 0);
+    const delivery = deliveries[Math.floor(Math.random() * 2)];
+    const t = new Date(now.getTime() - Math.random() * 3600000);
+    orders.push({
+      orderId: "#" + String(Math.floor(Math.random() * 9000) + 1000),
+      date: today,
+      time: t.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }),
+      customerName: names[Math.floor(Math.random() * names.length)],
+      customerPhone: "",
+      itemList: items,
+      deliveryMethod: delivery,
+      deliveryAddress: delivery === "ส่งวิน" ? "บ้านเลขที่ 123 ซอย 5" : "-",
+      paymentMethod: payments[Math.floor(Math.random() * 2)],
+      total: total + (delivery === "ส่งวิน" ? 15 : 0),
+      status: "รอชง"
+    });
+  }
+  saveOrders();
+  loadOrders();
+  alert("เพิ่มออเดอร์ตัวอย่าง 5 รายการแล้ว!");
+}
+
+// ============ POLLING ============
+async function pollOrders() {
+  if (SHEET_URL) {
+    try {
+      const res = await fetch(SHEET_URL + "?action=getOrders&since=" + Date.now());
+      const data = await res.json();
+      if (data.orders && data.orders.length > 0) {
+        data.orders.forEach(newOrder => {
+          const exists = orders.find(o => o.orderId === newOrder.orderId);
+          if (!exists) orders.unshift(newOrder);
+        });
+        saveOrders();
+        renderOrders();
+        updateStats();
+      }
+    } catch(e) {}
+  }
+}
+
+// ============ INIT ============
+loadOrders();
+setInterval(pollOrders, 15000);
+</script>
+</body>
+</html>
